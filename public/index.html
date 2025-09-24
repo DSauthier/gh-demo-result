@@ -5,43 +5,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Internal Team IT Hardware Store</title>
     <link rel="stylesheet" href="style.css">
+    <script src="i18n.js"></script>
+    <style>
+        .header-top {
+            display: flex;
+            justify-content: flex-end;
+            padding: 0 20px;
+            margin-bottom: 10px;
+        }
+        .language-switcher {
+            display: flex;
+            gap: 10px;
+        }
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        .lang-btn.active {
+            background: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Internal Team IT Hardware Store</h1>
-            <p>Get your home office items - Add items and checkout!</p>
+            <div class="header-top">
+                <div class="language-switcher">
+                    <button id="lang-en" class="lang-btn active" onclick="switchLanguage('en')" title="Switch to English">
+                        🇺🇸
+                    </button>
+                    <button id="lang-pt" class="lang-btn" onclick="switchLanguage('pt')" title="Mudar para Português">
+                        🇧🇷
+                    </button>
+                </div>
+            </div>
+            <h1 data-i18n="index.title">Internal Team IT Hardware Store</h1>
+            <p data-i18n="index.subtitle">Get your home office items - Add items and checkout!</p>
             <div style="margin-top: 15px;">
-                <a href="orders.html" style="color: white; text-decoration: none; background: rgba(255,255,255,0.3); padding: 8px 16px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.4)'" onmouseout="this.style.background='rgba(255,255,255,0.3)'">📋 View Order History</a>
+
+                <a href="orders.html" style="color: white; text-decoration: none; background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 6px;" data-i18n="index.view_orders">📋 View Order History</a>
+
             </div>
         </div>
         
         <div class="main-content">
             <div class="products-section">
-                <h2 class="section-title">🛍 Products</h2>
-                <div id="products-list">Loading products...</div>
+                <h2 class="section-title" data-i18n="index.products">🛍 Products</h2>
+                <div id="products-list" data-i18n="index.loading_products">Loading products...</div>
                 
                 <div class="action-section">
-                    <button onclick="clearCart()" class="danger">🗑 Clear Cart</button>
-                    <button onclick="loadProducts()" class="success">🔄 Refresh Products</button>
+                    <button onclick="clearCart()" class="danger" data-i18n="index.clear_cart">🗑 Clear Cart</button>
+                    <button onclick="loadProducts()" class="success" data-i18n="index.refresh_products">🔄 Refresh Products</button>
                 </div>
             </div>
 
             <div class="cart-section">
-                <h2 class="section-title">🛒 Your Cart</h2>
-                <div id="cart-items">Loading cart...</div>
+                <h2 class="section-title" data-i18n="index.cart">🛒 Your Cart</h2>
+                <div id="cart-items" data-i18n="index.loading_cart">Loading cart...</div>
                 <div class="cart-total">
-                    <label for="cart-total-input">Total: $</label>
+                    <label for="cart-total-input" data-i18n="index.total">Total: $</label>
                     <input type="number" id="cart-total-input" value="0.00" step="0.01" style="width:120px; font-size:1.1em;">
                 </div>
                 
                 <div class="action-section">
-                    <button onclick="checkout()" id="checkout-btn">💳 Checkout</button>
+                    <button onclick="checkout()" id="checkout-btn" data-i18n="index.checkout">💳 Checkout</button>
                     <div id="checkout-result"></div>
                 </div>
 
                 <div id="order-info" class="order-info" style="display: none;">
-                    <h4>📦 Last Order Details</h4>
+                    <h4 data-i18n="index.last_order">📦 Last Order Details</h4>
                     <div id="order-details"></div>
                 </div>
             </div>
