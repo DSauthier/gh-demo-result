@@ -17,8 +17,8 @@ jobs:
         id: vars
         run: |
           if [[ "${GITHUB_REF##*/}" == "main" ]]; then
-            echo "host=18.212.98.138" >> $GITHUB_OUTPUT
-            echo "env=prod" >> $GITHUB_OUTPUT
+            echo "host=34.227.223.21" >> $GITHUB_OUTPUT
+            echo "env=result" >> $GITHUB_OUTPUT
           else
             echo "host=34.227.223.21" >> $GITHUB_OUTPUT
             echo "env=test" >> $GITHUB_OUTPUT
