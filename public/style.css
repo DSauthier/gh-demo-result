@@ -47,6 +47,7 @@ body {
     box-shadow: 0 4px 15px rgba(234, 88, 12, 0.15);
 }
 
+.product-info { flex: 1; }
 .product-info h3 { color: #333; margin-bottom: 5px; }
 .product-info p { color: #666; font-size: 0.9em; }
 
