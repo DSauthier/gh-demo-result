@@ -35,7 +35,6 @@ body {
 
 .product { 
     display: flex; 
-    justify-content: space-between; 
     align-items: center;
     padding: 15px; 
     margin: 10px 0; 
@@ -50,9 +49,11 @@ body {
 
 .product-info h3 { color: #333; margin-bottom: 5px; }
 .product-info p { color: #666; font-size: 0.9em; }
+
 .product-price { font-weight: bold; color: #ea580c; font-size: 1.2em; }
 
-.product-actions { display: flex; align-items: center; gap: 10px; }
+
+.product-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .quantity-input { width: 50px; padding: 4px; font-size: 1em; }
 
 .cart-section { min-width: 350px; }
