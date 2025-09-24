@@ -1,0 +1,23 @@
+{
+  "name": "copilot-shopping-cart-demo",
+  "version": "1.0.0",
+  "description": "Shopping Cart Demo: Copilot + GHAS DevSecOps workflow",
+  "main": "server.js",
+  "scripts": {
+  "start": "node server.js",
+    "start-fixed": "node app-fixed.js",
+    "dev": "nodemon app.js",
+    "test": "node test-refund-exploit.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6",
+    "body-parser": "^1.20.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["demo", "copilot", "ghas", "devsecops", "shopping-cart"],
+  "author": "GitHub Demo",
+  "license": "MIT"
+}

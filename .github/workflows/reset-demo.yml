@@ -1,0 +1,62 @@
+name: Reset Demo Environment
+
+
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_reset:
+        description: '🔄 The demo environment will now be reset. All changes made during the demo will be reverted to match the latest state of the main branch.\n\nCheck this box to confirm you understand this action cannot be undone.'
+        required: true
+        type: boolean
+
+jobs:
+  reset-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify about demo reset
+        run: |
+          echo "🔄 The demo environment will now be reset. All changes made during the demo will be reverted to match the latest state of the main branch."
+      - name: Checkout golden-image branch
+        uses: actions/checkout@v4
+        with:
+          ref: golden-image
+      - name: Add SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+      - name: Add EC2 host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.DEMO_SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Rsync code to EC2 (golden-image)
+        run: |
+          rsync -avz --delete --exclude '.git' --exclude 'node_modules' --exclude '*.db' ./ ${{ secrets.DEMO_SERVER_USER }}@${{ secrets.DEMO_SERVER_HOST }}:/home/ec2-user/gh-demo
+      - name: Run reset script on remote server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEMO_SERVER_HOST }}
+          username: ${{ secrets.DEMO_SERVER_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            cd /home/ec2-user/gh-demo
+            chmod +x reset-demo.sh
+            ./reset-demo.sh
+
+
+
+  create-reset-main-issue:
+    runs-on: ubuntu-latest
+    needs: reset-demo
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Create reset main branch issue
+        run: |
+          gh issue create --title "Reset main branch to golden-image" \
+            --body "Please reset the main branch to match the golden-image branch. See copilot_reset_main_prompt.md for details." \
+            --assignee DSauthier
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internal Team IT Hardware Store</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Internal Team IT Hardware Store</h1>
+            <p>Get your home office items - Add items and checkout!</p>
+            <div style="margin-top: 15px;">
+                <a href="orders.html" style="color: white; text-decoration: none; background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 6px;">📋 View Order History</a>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="products-section">
+                <h2 class="section-title">🛍 Products</h2>
+                <div id="products-list">Loading products...</div>
+                
+                <div class="action-section">
+                    <button onclick="clearCart()" class="danger">🗑 Clear Cart</button>
+                    <button onclick="loadProducts()" class="success">🔄 Refresh Products</button>
+                </div>
+            </div>
+
+            <div class="cart-section">
+                <h2 class="section-title">🛒 Your Cart</h2>
+                <div id="cart-items">Loading cart...</div>
+                <div class="cart-total">
+                    <label for="cart-total-input">Total: $</label>
+                    <input type="number" id="cart-total-input" value="0.00" step="0.01" style="width:120px; font-size:1.1em;">
+                </div>
+                
+                <div class="action-section">
+                    <button onclick="checkout()" id="checkout-btn">💳 Checkout</button>
+                    <div id="checkout-result"></div>
+                </div>
+
+                <div id="order-info" class="order-info" style="display: none;">
+                    <h4>📦 Last Order Details</h4>
+                    <div id="order-details"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

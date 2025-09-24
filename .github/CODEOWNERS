@@ -1,0 +1,22 @@
+# CODEOWNERS file for gh-demo repository
+# This file defines who owns and must review changes to specific files/directories
+
+# Global ownership - DSauthier owns everything by default
+* @DSauthier
+
+# Critical security files require extra scrutiny
+server.js @DSauthier
+app-fixed.js @DSauthier
+db.js @DSauthier
+
+# Frontend files
+public/ @DSauthier
+
+# Configuration and deployment files
+.github/ @DSauthier
+package.json @DSauthier
+*.yml @DSauthier
+*.yaml @DSauthier
+
+# Documentation
+*.md @DSauthier

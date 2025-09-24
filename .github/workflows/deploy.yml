@@ -1,0 +1,61 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+      - test
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set deployment variables
+        id: vars
+        run: |
+          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            echo "host=18.212.98.138" >> $GITHUB_OUTPUT
+            echo "env=prod" >> $GITHUB_OUTPUT
+          else
+            echo "host=34.227.223.21" >> $GITHUB_OUTPUT
+            echo "env=test" >> $GITHUB_OUTPUT
+          fi
+          echo "user=ec2-user" >> $GITHUB_OUTPUT
+          echo "dir=/home/ec2-user/gh-demo" >> $GITHUB_OUTPUT
+
+      - name: Add SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Ensure deployment directory exists
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ steps.vars.outputs.user }}@${{ steps.vars.outputs.host }} "mkdir -p ${{ steps.vars.outputs.dir }}"
+
+
+      - name: Add EC2 host to known_hosts
+        run: |
+          ssh-keyscan -H ${{ steps.vars.outputs.host }} >> ~/.ssh/known_hosts
+
+      - name: Deploy app to EC2
+        run: |
+          rsync -avz --delete --exclude '.git' --exclude 'node_modules' --exclude '*.db' ./ ${{ steps.vars.outputs.user }}@${{ steps.vars.outputs.host }}:${{ steps.vars.outputs.dir }}
+
+      - name: Install dependencies and restart app with pm2
+        env:
+          USE_PM2: true
+        run: |
+          ssh ${{ steps.vars.outputs.user }}@${{ steps.vars.outputs.host }} "\
+            export USE_PM2=1 && \
+            cd ${{ steps.vars.outputs.dir }} && \
+            sudo npm install -g pm2 && \
+            npm install && \
+            pm2 delete app || true && \
+            fuser -k 3000/tcp || true && \
+            pm2 start server.js --name app --update-env && \
+            pm2 save && \
+            pm2 list
+          "
