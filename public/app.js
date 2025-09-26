@@ -11,19 +11,25 @@ async function loadProducts() {
     try {
         const response = await fetch('/api/products');
         const products = await response.json();
-        const productsHtml = products.map(product => `
-            <div class="product">
-                <div class="product-info">
-                    <h3>${product.name}</h3>
-                    <p>${product.description}</p>
+        const currentLang = window.currentLanguage ? window.currentLanguage() : 'en';
+        const addToCartText = window.getTranslation ? window.getTranslation('index.add_to_cart') : '➕ Add to Cart';
+        
+        const productsHtml = products.map(product => {
+            const price = window.formatCurrency ? window.formatCurrency(product.price) : `$${parseFloat(product.price).toFixed(2)}`;
+            return `
+                <div class="product">
+                    <div class="product-info">
+                        <h3>${product.name}</h3>
+                        <p>${product.description}</p>
+                    </div>
+                    <div class="product-price">${price}</div>
+                    <div class="product-actions">
+                        <input type="number" class="quantity-input" id="qty-${product.id}" value="1" min="1">
+                        <button onclick="addToCart(${product.id})">${addToCartText}</button>
+                    </div>
                 </div>
-                <div class="product-price">$${parseFloat(product.price).toFixed(2)}</div>
-                <div class="product-actions">
-                    <input type="number" class="quantity-input" id="qty-${product.id}" value="1" min="1">
-                    <button onclick="addToCart(${product.id})">➕ Add to Cart</button>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
         document.getElementById('products-list').innerHTML = productsHtml;
     } catch (error) {
         document.getElementById('products-list').innerHTML = 
@@ -57,18 +63,34 @@ async function loadCart() {
         const cart = await response.json();
         let total = 0;
         if (cart.items && cart.items.length > 0) {
-            const cartHtml = cart.items.map(item => `
-                <div class="cart-item">
-                    <div>${item.name} x${item.quantity}</div>
-                    <div>$${parseFloat(item.subtotal).toFixed(2)}</div>
-                </div>
-            `).join('');
+            const cartHtml = cart.items.map(item => {
+                const subtotal = window.formatCurrency ? window.formatCurrency(item.subtotal) : `$${parseFloat(item.subtotal).toFixed(2)}`;
+                return `
+                    <div class="cart-item">
+                        <div>${item.name} x${item.quantity}</div>
+                        <div>${subtotal}</div>
+                    </div>
+                `;
+            }).join('');
             document.getElementById('cart-items').innerHTML = cartHtml;
             total = cart.total;
         } else {
-            document.getElementById('cart-items').innerHTML = '<div>🛒 Your cart is empty</div>';
+            const emptyText = window.getTranslation ? window.getTranslation('index.empty_cart') : '🛒 Your cart is empty';
+            document.getElementById('cart-items').innerHTML = `<div>${emptyText}</div>`;
         }
-        document.getElementById('cart-total-input').value = total;
+        
+        // Update total label and value with currency conversion
+        const currentLang = window.currentLanguage ? window.currentLanguage() : 'en';
+        const totalLabel = document.querySelector('label[for="cart-total-input"]');
+        if (totalLabel) {
+            const totalText = window.getTranslation ? window.getTranslation('index.total') : 'Total';
+            const currency = currentLang === 'pt' ? 'R$' : '$';
+            totalLabel.textContent = `${totalText}: ${currency}`;
+        }
+        
+        // Convert total for display
+        const convertedTotal = window.formatCurrency ? parseFloat(total) * (currentLang === 'pt' ? 5 : 1) : total;
+        document.getElementById('cart-total-input').value = convertedTotal.toFixed(2);
     } catch (error) {
         document.getElementById('cart-items').innerHTML = 
             '<div class="error-msg">Error loading cart: ' + error.message + '</div>';
@@ -77,12 +99,11 @@ async function loadCart() {
 
 async function checkout() {
     try {
-        // VULNERABILITY: Send client-supplied total (can be manipulated!)
-        const total = document.getElementById('cart-total-input').value;
+        // SECURITY FIX: No longer send client-supplied total (server calculates it)
         const response = await fetch('/api/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ total: total }) // Send client-supplied total - VULNERABLE!
+            body: JSON.stringify({}) // Empty body - server calculates total from cart
         });
         const result = await response.json();
         if (response.ok) {
