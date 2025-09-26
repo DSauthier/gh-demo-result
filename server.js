@@ -15,6 +15,7 @@ function logBoth(...args) {
 const bodyParser = require('body-parser');
 const db = require('./db');
 const path = require('path');
+const { setupMetricsRoutes } = require('./copilot-metrics');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -206,8 +207,12 @@ app.get('/api/orders', (req, res) => {
   });
 });
 
+// Setup Copilot metrics routes
+setupMetricsRoutes(app, 'DSauthier', 'gh-demo-result');
+
 app.listen(PORT, HOST, () => {
   logBoth(`🛒 Shopping cart server running at http://${HOST}:${PORT}`);
+  logBoth(`📊 Copilot metrics dashboard: http://${HOST}:${PORT}/copilot-metrics.html`);
   logBoth(`🔥 VULNERABLE VERSION - Refund system has security issues!`);
   logBoth(`🎯 Try: Add items to cart, checkout, then request refund with NEGATIVE amount`);
 });

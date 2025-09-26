@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Copilot Value Metrics Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .dashboard-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .metric-card h3 {
+            color: #667eea;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .metric-value {
+            font-size: 3em;
+            font-weight: bold;
+            color: #2d3748;
+            margin: 15px 0;
+        }
+
+        .metric-label {
+            color: #718096;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .metric-trend {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #48bb78;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .metric-trend.negative {
+            color: #f56565;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.2em;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+            transition: background 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: #5a67d8;
+        }
+
+        .details-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .details-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .recent-activity {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 10px 0;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .activity-meta {
+            color: #718096;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <h1>🤖 GitHub Copilot Value Metrics</h1>
+        <p>Demonstrating AI-powered development efficiency and ROI</p>
+    </div>
+
+    <div class="container">
+        <div id="loading" class="loading">
+            🔄 Loading Copilot metrics...
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="metrics-container" style="display: none;">
+            <div class="metrics-grid">
+                <!-- Development Velocity Card -->
+                <div class="metric-card">
+                    <h3>⚡ Development Velocity</h3>
+                    <div class="metric-value" id="total-prs">-</div>
+                    <div class="metric-label">Total Copilot PRs</div>
+                    <div class="metric-trend">
+                        <span id="avg-merge-time">- hours</span> avg. merge time
+                    </div>
+                </div>
+
+                <!-- Issue Resolution Card -->
+                <div class="metric-card">
+                    <h3>🎯 Issue Resolution</h3>
+                    <div class="metric-value" id="total-issues">-</div>
+                    <div class="metric-label">Issues Resolved</div>
+                    <div class="metric-trend">
+                        <span id="avg-resolution-time">- days</span> avg. resolution
+                    </div>
+                </div>
+
+                <!-- Code Quality Card -->
+                <div class="metric-card">
+                    <h3>📈 Code Commits</h3>
+                    <div class="metric-value" id="weekly-commits">-</div>
+                    <div class="metric-label">Commits per Week</div>
+                    <div class="metric-trend">
+                        <span id="total-commits">-</span> total commits
+                    </div>
+                </div>
+
+                <!-- Success Rate Card -->
+                <div class="metric-card">
+                    <h3>✅ Success Rate</h3>
+                    <div class="metric-value" id="success-rate">-%</div>
+                    <div class="metric-label">PR Merge Success</div>
+                    <div class="metric-trend">
+                        High automation reliability
+                    </div>
+                </div>
+            </div>
+
+            <button class="refresh-btn" onclick="loadMetrics()">🔄 Refresh Metrics</button>
+
+            <div class="details-section">
+                <h2>📊 Recent Copilot Activity</h2>
+                <div id="recent-activity" class="recent-activity">
+                    <!-- Activity items will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadMetrics() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const container = document.getElementById('metrics-container');
+            
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            container.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/copilot-metrics');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                displayMetrics(data);
+                displayRecentActivity(data);
+                
+                loading.style.display = 'none';
+                container.style.display = 'block';
+                
+            } catch (err) {
+                console.error('Error loading metrics:', err);
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                error.textContent = `Failed to load metrics: ${err.message}. Make sure GitHub token is configured and API is accessible.`;
+            }
+        }
+
+        function displayMetrics(data) {
+            const summary = data.summary || {};
+            const metrics = data.metrics || {};
+            
+            // Update metric cards
+            document.getElementById('total-prs').textContent = summary.totalCopilotPRs || 0;
+            document.getElementById('avg-merge-time').textContent = summary.averageTimeToMerge || '0 hours';
+            document.getElementById('total-issues').textContent = summary.totalIssuesResolved || 0;
+            document.getElementById('avg-resolution-time').textContent = summary.averageResolutionTime || '0 days';
+            document.getElementById('weekly-commits').textContent = summary.commitFrequency || 0;
+            document.getElementById('total-commits').textContent = 
+                metrics.codeQuality?.totalCopilotCommits || 0;
+            document.getElementById('success-rate').textContent = 
+                metrics.developmentVelocity?.successRate || 0;
+        }
+
+        function displayRecentActivity(data) {
+            const activityContainer = document.getElementById('recent-activity');
+            const metrics = data.metrics || {};
+            
+            let activityHtml = '';
+            
+            // Add recent PRs
+            if (metrics.developmentVelocity) {
+                activityHtml += '<h4 style="color: #667eea; margin-bottom: 10px;">Recent Pull Requests</h4>';
+                // Note: In a real implementation, you'd get recent PR data from the API
+                activityHtml += '<div class="activity-item"><div class="activity-title">Copilot PRs available via GitHub API</div><div class="activity-meta">Use /repos/{owner}/{repo}/pulls endpoint for detailed PR data</div></div>';
+            }
+            
+            // Add recent commits
+            if (metrics.codeQuality && metrics.codeQuality.recentActivity) {
+                activityHtml += '<h4 style="color: #667eea; margin: 20px 0 10px;">Recent Commits</h4>';
+                metrics.codeQuality.recentActivity.slice(0, 5).forEach(commit => {
+                    const date = new Date(commit.date).toLocaleDateString();
+                    activityHtml += `
+                        <div class="activity-item">
+                            <div class="activity-title">${commit.message}</div>
+                            <div class="activity-meta">
+                                by ${commit.author} on ${date} 
+                                (+${commit.additions} -${commit.deletions} lines)
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Add recent issues
+            if (metrics.issueResolution && metrics.issueResolution.recentResolutions) {
+                activityHtml += '<h4 style="color: #667eea; margin: 20px 0 10px;">Recent Issue Resolutions</h4>';
+                metrics.issueResolution.recentResolutions.slice(0, 3).forEach(issue => {
+                    const created = new Date(issue.created).toLocaleDateString();
+                    const closed = new Date(issue.closed).toLocaleDateString();
+                    activityHtml += `
+                        <div class="activity-item">
+                            <div class="activity-title">${issue.title}</div>
+                            <div class="activity-meta">
+                                Created ${created}, Closed ${closed}
+                                ${issue.labels.length > 0 ? '• Labels: ' + issue.labels.join(', ') : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            if (!activityHtml) {
+                activityHtml = '<div class="activity-item"><div class="activity-title">No recent activity data available</div><div class="activity-meta">Configure GitHub token to see detailed activity</div></div>';
+            }
+            
+            activityContainer.innerHTML = activityHtml;
+        }
+
+        // Load metrics when page loads
+        document.addEventListener('DOMContentLoaded', loadMetrics);
+        
+        // Auto-refresh every 5 minutes
+        setInterval(loadMetrics, 5 * 60 * 1000);
+    </script>
+</body>
+</html>

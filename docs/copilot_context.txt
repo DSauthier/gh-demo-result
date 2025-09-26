@@ -1,0 +1,59 @@
+i will give you the context:
+
+the goal: create a demo to showcase github copilot capabilities to impact real business scenario.
+
+the idea: we create a simple shopping cart app with a bug, the users can alter the invoice value in the ui before submitting it, getting refunds for items instead of paying for them.
+
+phase 1: create the app with the bug and push to a repository and deploy in an ec2 using actions
+
+phase 2: create a github issue mimicking what a QA team would do
+
+phase 3: the actual live demo - i want to be able to give context to a copilot chat that will work on reading the issue created, understand the problem, fix the app issue and deploy a new version without breaking production.
+
+since i will be practicing this demo over and over, i need a strategy to replicate this phase 3 several times, meaning i should be able to roll back, perhaps create a test and dev environments (branches) and always fix on dev-branch-1
+
+Thank you for the detailed context and goals. Here’s a summary and a recommended strategy for your demo workflow, especially to make phase 3 repeatable and robust:
+
+Demo Workflow Summary
+Phase 1:
+
+Build a simple shopping cart app with a deliberate bug (invoice value can be altered by the user).
+Push to GitHub and deploy to an EC2 instance using GitHub Actions.
+Phase 2:
+
+Create a GitHub issue describing the bug, as a QA team would.
+Phase 3:
+
+Use Copilot Chat to:
+Read and understand the issue.
+Fix the bug in a development branch (e.g., dev-branch-1).
+Test and deploy the fix to a test/dev environment.
+Merge and deploy to production if successful.
+Be able to repeat this phase easily for demo purposes.
+Recommended Strategy for Repeatable Demos
+Branching Model:
+
+Use at least three branches:
+main (production)
+dev-branch-1 (for fixes and testing)
+buggy-demo (always contains the buggy version for resets)
+Environments:
+
+Set up two environments in your deployment workflow:
+Production: Deploys from main
+Dev/Test: Deploys from dev-branch-1
+Resetting for Repeated Demos:
+
+To reset, simply:
+Reset main and dev-branch-1 to the buggy state from buggy-demo.
+Re-deploy to both environments.
+Optionally, automate this reset with a script or GitHub Action.
+Demo Flow:
+
+Start with the buggy app in both environments.
+Create the issue.
+Use Copilot Chat to fix the bug in dev-branch-1.
+Test in the dev environment.
+Merge to main and deploy to production.
+For the next demo, reset branches as above.
+Would you like help setting up the branch structure, deployment workflows, or automation scripts for resets? Let me know which part you want to work on next!

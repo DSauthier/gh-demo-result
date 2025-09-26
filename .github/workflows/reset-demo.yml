@@ -1,62 +1,68 @@
-name: Reset Demo Environment
-
-
+name: Clear Order History
 
 on:
   workflow_dispatch:
     inputs:
       confirm_reset:
-        description: '🔄 The demo environment will now be reset. All changes made during the demo will be reverted to match the latest state of the main branch.\n\nCheck this box to confirm you understand this action cannot be undone.'
+        description: '�️ This will clear all order history and shopping cart data from the demo server. Products will remain unchanged.\n\nCheck this box to confirm you want to clear the order history.'
         required: true
         type: boolean
 
 jobs:
-  reset-demo:
+  clear-order-history:
     runs-on: ubuntu-latest
     steps:
-      - name: Notify about demo reset
+      - name: Notify about order history clearing
         run: |
-          echo "🔄 The demo environment will now be reset. All changes made during the demo will be reverted to match the latest state of the main branch."
-      - name: Checkout golden-image branch
-        uses: actions/checkout@v4
-        with:
-          ref: golden-image
+          echo "�️ Clearing order history and cart data from demo server..."
+          echo "Products and other data will remain unchanged."
+      
       - name: Add SSH key
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+      
       - name: Add EC2 host to known_hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.DEMO_SERVER_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H 34.227.223.21 >> ~/.ssh/known_hosts
 
-      - name: Rsync code to EC2 (golden-image)
+      - name: Clear order history on server
         run: |
-          rsync -avz --delete --exclude '.git' --exclude 'node_modules' --exclude '*.db' ./ ${{ secrets.DEMO_SERVER_USER }}@${{ secrets.DEMO_SERVER_HOST }}:/home/ec2-user/gh-demo
-      - name: Run reset script on remote server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.DEMO_SERVER_HOST }}
-          username: ${{ secrets.DEMO_SERVER_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          script: |
-            cd /home/ec2-user/gh-demo
-            chmod +x reset-demo.sh
-            ./reset-demo.sh
+          ssh ec2-user@34.227.223.21 "
+            cd /home/ec2-user/gh-demo &&
+            echo 'Clearing order history...' &&
+            sqlite3 shop-demo.db 'DELETE FROM orders;' &&
+            sqlite3 shop-demo.db 'DELETE FROM cart;' &&
+            echo 'Order history cleared successfully!' &&
+            echo 'Remaining orders:' &&
+            sqlite3 shop-demo.db 'SELECT COUNT(*) as remaining_orders FROM orders;' &&
+            echo 'Remaining cart items:' &&
+            sqlite3 shop-demo.db 'SELECT COUNT(*) as remaining_cart_items FROM cart;'
+          "
 
 
-
-  create-reset-main-issue:
+  create-cleanup-notification:
     runs-on: ubuntu-latest
-    needs: reset-demo
+    needs: clear-order-history
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Create reset main branch issue
+      - name: Create order history cleanup notification
         run: |
-          gh issue create --title "Reset main branch to golden-image" \
-            --body "Please reset the main branch to match the golden-image branch. See copilot_reset_main_prompt.md for details." \
-            --assignee DSauthier
+          gh issue create --title "✅ Order history cleared on demo server" \
+            --body "The order history and cart data have been successfully cleared from the demo server (34.227.223.21:3000). 
+
+**What was cleared:**
+- All order records
+- All shopping cart items
+
+**What remains unchanged:**
+- Product catalog
+- Application code
+- Database structure
+
+The demo environment is now ready for a fresh demonstration." \
+            --label "maintenance,demo-reset"
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}

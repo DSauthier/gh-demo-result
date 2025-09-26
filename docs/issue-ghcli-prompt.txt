@@ -1,0 +1,13 @@
+
+Prompt:
+
+Create a new GitHub issue in this repository using the gh CLI:
+
+Title: 🚨 CRITICAL: Users can manipulate checkout total to get free products
+Body: Use the content from github-issue.md in the project root.
+Labels: critical, bug
+Assignee: DSauthier
+Omit any labels or assignees that do not exist.
+Command example:
+
+If any label or assignee does not exist, omit it and proceed. Do not prompt for confirmation—just run the command.
